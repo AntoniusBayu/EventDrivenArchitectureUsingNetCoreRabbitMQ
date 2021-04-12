@@ -10,10 +10,12 @@ namespace Domain.Handler.Controllers
     public class HandlerController : ControllerBase
     {
         private readonly IPublisher publisher;
+        public IHandlerRepository Handler { get; }
 
-        public HandlerController(IPublisher publisher)
+        public HandlerController(IPublisher publisher, IHandlerRepository handler)
         {
             this.publisher = publisher;
+            this.Handler = handler;
         }
 
         [HttpPost, Route("AddSingleData")]
@@ -21,7 +23,14 @@ namespace Domain.Handler.Controllers
         {
             try
             {
-                publisher.Publish(JsonConvert.SerializeObject(data), "handler.published", null);
+                var datahandler = new HandlerModel();
+                datahandler.OrderID = data.OrderID;
+                datahandler.Result = false;
+                datahandler.Message = "Pending";
+
+                this.Handler.Insert(datahandler);
+                data.IsSuccess = true;
+                publisher.Publish(JsonConvert.SerializeObject(data), "order.event", null);
 
                 return Ok("Sukses");
             }

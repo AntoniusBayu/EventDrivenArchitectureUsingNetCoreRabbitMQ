@@ -27,6 +27,7 @@ namespace Domain.Model
             catch (Exception)
             {
                 transaction.Rollback();
+                throw;
             }
         }
     }

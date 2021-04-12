@@ -25,14 +25,14 @@ namespace Inventory
             services.AddSingleton<IInventoryRepository>(new InventoryRepository(connectionString));
             services.AddSingleton<IConnectionProvider>(new ConnectionProvider("amqp://guest:guest@localhost:5672"));
             services.AddSingleton<IPublisher>(x => new Publisher(x.GetService<IConnectionProvider>(),
-                    "inventory_exchange",
+                    "order_exchange",
                     ExchangeType.Topic));
 
             services.AddSingleton<ISubscriber>(x => new Subscriber(x.GetService<IConnectionProvider>(),
                 "order_exchange",
-                "inventory_for_order_queue",
-                "order.event",
-                ExchangeType.Topic)).AddHostedService<OrderResponseListener>();
+                "inventory_queue",
+                "inventory.event",
+                ExchangeType.Topic)).AddHostedService<InventoryQueue>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

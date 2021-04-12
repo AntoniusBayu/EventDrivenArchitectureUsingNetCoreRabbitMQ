@@ -8,13 +8,16 @@ using System.Threading.Tasks;
 
 namespace Domain.Handler
 {
-    public class OrderResponseListener : IHostedService
+    public class HandlerQueue : IHostedService
     {
         private readonly ISubscriber subscriber;
 
-        public OrderResponseListener(ISubscriber subscriber)
+        public IHandlerRepository Handler { get; }
+
+        public HandlerQueue(ISubscriber subscriber, IHandlerRepository handler)
         {
             this.subscriber = subscriber;
+            Handler = handler;
         }
         public Task StartAsync(CancellationToken cancellationToken)
         {
@@ -24,7 +27,8 @@ namespace Domain.Handler
 
         private bool Subscribe(string message, IDictionary<string, object> header)
         {
-            var response = JsonConvert.DeserializeObject<Order>(message);
+            var response = JsonConvert.DeserializeObject<HandlerModel>(message);
+            Handler.Update(response);
             return true;
         }
 

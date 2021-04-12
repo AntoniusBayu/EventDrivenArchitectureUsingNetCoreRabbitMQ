@@ -1,3 +1,4 @@
+using Domain.Model;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -21,7 +22,9 @@ namespace Domain.Handler
         public void ConfigureServices(IServiceCollection services)
         {
 
+            var connectionString = Configuration["ConnectionString"];
             services.AddControllers();
+            services.AddSingleton<IHandlerRepository>(new HandlerRepository(connectionString));
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Domain.Handler", Version = "v1" });
@@ -29,20 +32,14 @@ namespace Domain.Handler
 
             services.AddSingleton<IConnectionProvider>(new ConnectionProvider("amqp://guest:guest@localhost:5672"));
             services.AddSingleton<IPublisher>(x => new Publisher(x.GetService<IConnectionProvider>(),
-                    "handler_exchange",
+                    "order_exchange",
                     ExchangeType.Topic));
 
             services.AddSingleton<ISubscriber>(x => new Subscriber(x.GetService<IConnectionProvider>(),
                 "order_exchange",
-                "handler_for_order_queue",
-                "order.event",
-                ExchangeType.Topic)).AddHostedService<OrderResponseListener>();
-
-            services.AddSingleton<ISubscriber>(x => new Subscriber(x.GetService<IConnectionProvider>(),
-                "inventory_exchange",
-                "handler_for_inventory_queue",
-                "inventory.event",
-                ExchangeType.Topic)).AddHostedService<InventoryResponseListener>();
+                "handler_queue",
+                "handler.event",
+                ExchangeType.Topic)).AddHostedService<HandlerQueue>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

@@ -29,16 +29,10 @@ namespace Order
                     ExchangeType.Topic));
 
             services.AddSingleton<ISubscriber>(x => new Subscriber(x.GetService<IConnectionProvider>(),
-                "handler_exchange",
-                "order_for_handler_queue",
-                "handler.published",
-                ExchangeType.Topic)).AddHostedService<HandlerResponseListener>();
-
-            services.AddSingleton<ISubscriber>(x => new Subscriber(x.GetService<IConnectionProvider>(),
-                "inventory_exchange",
-                "order_for_inventory_queue",
-                "inventory.event",
-                ExchangeType.Topic)).AddHostedService<InventoryResponseListener>();
+                "order_exchange",
+                "order_queue",
+                "order.event",
+                ExchangeType.Topic)).AddHostedService<OrderQueue>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
